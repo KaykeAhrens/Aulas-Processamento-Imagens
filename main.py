@@ -1,6 +1,7 @@
 import FreeSimpleGUI as sg
 from PIL import ExifTags, Image
 import io
+import requests
 
 def decimal_coords(coords, ref):
     decimal_degrees = float(coords[0]) + float(coords[1]) / 60 + float(coords[2]) / 3600
@@ -43,9 +44,24 @@ while True:
 
         gpsinfo = info.get_ifd(GPSINFO_TAG)
 
+        lat = decimal_coords(gpsinfo[2], gpsinfo[1])
+        lon = decimal_coords(gpsinfo[4], gpsinfo[3])
 
-        print('Lat : {0}'.format(decimal_coords(gpsinfo[2], gpsinfo[1])))
-        print('Lon : {0}'.format(decimal_coords(gpsinfo[4], gpsinfo[3])))
+        print('Lat : {0}'.format(lat))
+        print('Lon : {0}'.format(lon))
+
+        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}&zoom=10&addressdetails=1"
+        headers = {'User-Agent': 'FotoShoppingApp/1.0 (kaykebiscegli2005@gmail.com)'} 
+        
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        address = data.get('address', {})
+        estado = address.get('state', 'Não encontrado')
+        pais = address.get('country', 'Não encontrado')
+
+        sg.popup(f"Localização:\nEstado: {estado}\nPaís: {pais}", title="Dados de Localização")
+
     elif event == 'Mostrar Dados da Imagem':
         img = Image.open("IMG_0667 (SALVA).png")
         img.show("imagem")
