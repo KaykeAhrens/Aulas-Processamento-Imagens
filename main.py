@@ -18,8 +18,37 @@ def resize_image(image_path):
     img = img.resize((800, 600), Image.Resampling.LANCZOS)
     return img
 
+def filtro_neg(image):
+    width, height = image.size
+    img = image.copy()
+
+    for i in range(width):
+        for j in range(height):
+            (r, g, b) = img.getpixel((i, j))  
+            r = 255 - r
+            g = 255 - g
+            b = 255 - b
+            img.putpixel((i, j), (r, g, b))  
+
+    return img
+
+def filtro_sepia(image):
+    width, height = image.size
+    img = image.copy()
+
+    for i in range(width):
+        for j in range(height):
+            (r, g, b) = img.getpixel((i, j))  
+            r = r + 120 if r + 120 < 255 else 255 
+            g = g + 75 if g + 75 < 255 else 255
+            b = b + 5 if b + 5 < 255 else 255
+
+            img.putpixel((i, j), (r, g, b))  
+
+    return img
+            
 layout = [
-    [sg.Menu([['Arquivo', ['Abrir', 'Fechar', 'Mostrar Dados de GPS', 'Mostrar Dados da Imagem']], ['Ajuda',['Sobre']]])],
+    [sg.Menu([['Arquivo', ['Abrir', 'Fechar', 'Mostrar Dados de GPS', 'Mostrar Dados da Imagem', 'Filtro Negativo', 'Filtro Sepia']], ['Ajuda',['Sobre']]])],
     [sg.Image(key='-IMAGE-', size=(800, 600))],
 ]
 
@@ -74,5 +103,19 @@ while True:
         print(img.format_description)
     elif event == 'Sobre':
         sg.popup('Desenvolvido pelo BCC - 6° Semestre.\n\n Thyago Quintas')
+
+    elif event == "Filtro Negativo":
+        file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
+        if file_path:
+            image = Image.open(file_path)
+            img = filtro_neg(image)
+            img.show()
+
+    elif event == "Filtro Sepia":
+        file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
+        if file_path:
+            image = Image.open(file_path)
+            img = filtro_sepia(image)
+            img.show()
 
 window.close()
