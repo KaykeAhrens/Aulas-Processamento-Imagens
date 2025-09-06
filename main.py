@@ -1,5 +1,5 @@
 import FreeSimpleGUI as sg
-from PIL import ExifTags, Image
+from PIL import *
 import io
 import requests
 
@@ -32,6 +32,21 @@ def filtro_neg(image):
 
     return img
 
+def filtro_quatro_bits(image):
+    img = image.copy()
+    img = img.convert("P", palette=Image.ADAPTIVE, colors=4)
+
+    return img
+
+def filtro_blur(image):
+    img = image.copy()
+    radius = sg.popup_get_text("Digite a quantidade de blur que você quer aplicar (0 a 20):", default_text="2")
+    radius = int(radius)
+    radius = max(0, min(20, radius))
+    img = img.filter(ImageFilter.GaussianBlur(radius))
+
+    return img
+
 def filtro_sepia(image):
     width, height = image.size
     img = image.copy()
@@ -46,9 +61,35 @@ def filtro_sepia(image):
             img.putpixel((i, j), (r, g, b))  
 
     return img
+
+def filtro_pb(image):
+    width, height = image.size
+    img = image.copy()
+
+    for i in range(width):
+        for j in range(height):
+            rgb = img.getpixel((i, j))  
+            r = int(0.3 * rgb[0])
+            g = int(0.59 * rgb[1]) 
+            b = int(0.11 * rgb[2])
+            pb = r + g + b
+            r = pb
+            g = pb
+            b = pb
+            img.putpixel((i, j), (r, g, b))  
+
+    return img
             
 layout = [
-    [sg.Menu([['Arquivo', ['Abrir', 'Fechar', 'Mostrar Dados de GPS', 'Mostrar Dados da Imagem', 'Filtro Negativo', 'Filtro Sepia']], ['Ajuda',['Sobre']]])],
+    [sg.Menu([
+        ['Arquivo', ['Abrir', 'Fechar', 'Mostrar Dados de GPS', 'Mostrar Dados da Imagem'], ['Ajuda',['Sobre']]],
+        ['Editar', ['Desfazer']],
+        ['Imagem', [
+            'Girar', ['Girar 90° à Direita', 'Girar 90° à Esquerda'],
+            'Filtro', ['Preto e Branco', 'Sépia', 'Negativo', '4 Bits', 'Blur', 'Contorno', 'Detalhe'
+            'Realce de Bordas', 'Relevo', 'Detectar Bordas', 'Nitidez', 'Suavizar','Filtro Mínimo', 'Filtro Máximo'],
+            'Histograma RGB']],
+            ])],
     [sg.Image(key='-IMAGE-', size=(800, 600))],
 ]
 
@@ -104,18 +145,39 @@ while True:
     elif event == 'Sobre':
         sg.popup('Desenvolvido pelo BCC - 6° Semestre.\n\n Thyago Quintas')
 
-    elif event == "Filtro Negativo":
+    elif event == "Negativo":
         file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
         if file_path:
             image = Image.open(file_path)
             img = filtro_neg(image)
             img.show()
 
-    elif event == "Filtro Sepia":
+    elif event == "Sépia":
         file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
         if file_path:
             image = Image.open(file_path)
             img = filtro_sepia(image)
+            img.show()
+
+    elif event == "Preto e Branco":
+        file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
+        if file_path:
+            image = Image.open(file_path)
+            img = filtro_pb(image)
+            img.show()
+
+    elif event == "4 Bits":
+        file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
+        if file_path:
+            image = Image.open(file_path)
+            img = filtro_quatro_bits(image)
+            img.show()
+
+    elif event == "Blur":
+        file_path = sg.popup_get_file('Selecione uma imagem', file_types=(("Imagens", "*.jpg *.png"),))
+        if file_path:
+            image = Image.open(file_path)
+            img = filtro_blur(image)
             img.show()
 
 window.close()
